@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { useMermaidRenderer } from '@/hooks/useMermaidRenderer';
-import { FileCode2, ExternalLink, Code2, Loader2, X, Clipboard } from 'lucide-react';
+import { useMermaidRenderer } from '../hooks/useMermaidRenderer';
+import { FileCode2, ExternalLink, Code2, Loader2, X, Clipboard, Download } from 'lucide-react';
 import '@/styles/mermaid.css';
 
 interface VisualizationProps {
@@ -83,6 +83,183 @@ const Visualization = ({ mermaidCode: externalMermaidCode }: VisualizationProps)
     if (currentMermaidCode) setIsCodeOpen(true);
   };
 
+  const handleDownloadPng = async () => {
+    const container = diagramRef.current;
+    if (!container) return;
+    const svg = container.querySelector('svg');
+    if (!svg) return;
+
+    const downloadSvg = (svgElement: SVGSVGElement) => {
+      const serializer = new XMLSerializer();
+      const svgStr = serializer.serializeToString(svgElement);
+      const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'diagram.svg';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    };
+
+    // Serialize SVG
+    const serializer = new XMLSerializer();
+    const svgClone = svg.cloneNode(true) as SVGSVGElement;
+    // Ensure XMLNS present
+    svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    svgClone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+    svgClone.setAttribute('xmlns:xhtml', 'http://www.w3.org/1999/xhtml');
+    // Precompute string for potential canvg path and standard path
+    const svgString = serializer.serializeToString(svgClone);
+    // If HTML labels are present, attempt canvg-based rasterization first
+    const hasForeignObject = !!svgClone.querySelector('foreignObject');
+    if (hasForeignObject) {
+      try {
+        const ensureCanvg = async () => {
+          const w = window as any;
+          if (w.canvg?.Canvg) return w.canvg;
+          await new Promise<void>((resolve, reject) => {
+            const existing = document.querySelector('script[data-lib="canvg"]');
+            if (existing) return resolve();
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/canvg@4.0.1/lib/umd.min.js';
+            s.async = true;
+            (s as any).dataset.lib = 'canvg';
+            s.onload = () => resolve();
+            s.onerror = () => reject(new Error('canvg cdn load failed'));
+            document.head.appendChild(s);
+          });
+          return (window as any).canvg;
+        };
+        const canvgLib = await ensureCanvg();
+        if (canvgLib?.Canvg) {
+          const vb = svgClone.getAttribute('viewBox');
+          let width = 0, height = 0;
+          if (vb) {
+            const parts = vb.split(/\s+/).map(Number);
+            if (parts.length === 4) { width = parts[2]; height = parts[3]; }
+          }
+          if (!width || !height) {
+            try {
+              const bb = (svg as any).getBBox?.();
+              if (bb && bb.width && bb.height) { width = Math.ceil(bb.width); height = Math.ceil(bb.height); }
+            } catch {}
+          }
+          if (!width || !height) {
+            const rect = svg.getBoundingClientRect();
+            width = Math.ceil(rect.width || 1200);
+            height = Math.ceil(rect.height || 800);
+          }
+          width = Math.max(10, width);
+          height = Math.max(10, height);
+
+          const scale = 2;
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.floor(width * scale));
+          canvas.height = Math.max(1, Math.floor(height * scale));
+          const ctx = canvas.getContext('2d');
+          if (!ctx) throw new Error('Canvas context unavailable');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          const instance = await canvgLib.Canvg.from(ctx, svgString);
+          await instance.render();
+          await new Promise<void>((resolve) => setTimeout(() => resolve(), 0));
+          canvas.toBlob((pngBlob) => {
+            const a = document.createElement('a');
+            if (!pngBlob) {
+              a.href = canvas.toDataURL('image/png');
+            } else {
+              const pngUrl = URL.createObjectURL(pngBlob);
+              a.href = pngUrl;
+            }
+            a.download = 'diagram.png';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+          }, 'image/png');
+          return;
+        }
+      } catch (e) {
+        // Fall through to standard path; if that fails, we'll SVG-download
+      }
+    }
+    const dataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgString);
+
+    try {
+      const img = new Image();
+      // Allow drawing without tainting canvas
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        try {
+          // Determine size
+          const vb = svgClone.getAttribute('viewBox');
+          let width = 0;
+          let height = 0;
+          if (vb) {
+            const parts = vb.split(/\s+/).map(Number);
+            if (parts.length === 4) {
+              width = parts[2];
+              height = parts[3];
+            }
+          }
+          if (!width || !height) {
+            try {
+              const bb = (svg as any).getBBox?.();
+              if (bb && bb.width && bb.height) {
+                width = Math.ceil(bb.width);
+                height = Math.ceil(bb.height);
+              }
+            } catch {}
+          }
+          if (!width || !height) {
+            const rect = svg.getBoundingClientRect();
+            width = Math.ceil(rect.width || 1200);
+            height = Math.ceil(rect.height || 800);
+          }
+          width = Math.max(10, width);
+          height = Math.max(10, height);
+          const scale = 2; // higher res export
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.floor(width * scale));
+          canvas.height = Math.max(1, Math.floor(height * scale));
+          const ctx = canvas.getContext('2d');
+          if (!ctx) throw new Error('Canvas context unavailable');
+          // Background
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob((pngBlob) => {
+            if (!pngBlob) {
+              // Fallback to SVG download
+              downloadSvg(svgClone);
+              return;
+            }
+            const pngUrl = URL.createObjectURL(pngBlob);
+            const a = document.createElement('a');
+            a.href = pngUrl;
+            a.download = 'diagram.png';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(pngUrl);
+          }, 'image/png');
+        } catch (err) {
+          // Fallback to SVG
+          downloadSvg(svgClone);
+        }
+      };
+      img.onerror = () => {
+        // Fallback to SVG
+        downloadSvg(svgClone);
+      };
+      img.src = dataUrl;
+    } catch (e) {
+      // Fallback to SVG
+      downloadSvg(svgClone);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -111,20 +288,33 @@ const Visualization = ({ mermaidCode: externalMermaidCode }: VisualizationProps)
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleShowCode}
-                  className="p-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/90 transition-all"
+                  className="inline-flex items-center gap-2 px-3 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/90 transition-all"
                   title="Show Code"
                 >
                   <Code2 className="w-4 h-4" />
+                  <span className="hidden sm:inline">Code</span>
                 </motion.button>
 
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleOpenLiveEditor}
-                  className="p-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/90 transition-all"
+                  className="inline-flex items-center gap-2 px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-all"
                   title="Open in Mermaid Live Editor"
                 >
                   <ExternalLink className="w-4 h-4" />
+                  <span>Mermaid</span>
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleDownloadPng}
+                  className="inline-flex items-center gap-2 px-3 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/90 transition-all"
+                  title="Download PNG"
+                >
+                  <Download className="w-4 h-4" />
+                  <span className="hidden sm:inline">PNG</span>
                 </motion.button>
               </>
             )}

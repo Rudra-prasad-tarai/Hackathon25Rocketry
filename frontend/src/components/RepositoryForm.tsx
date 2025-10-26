@@ -18,6 +18,7 @@ const RepositoryForm = () => {
   const [showVisualization, setShowVisualization] = useState(false);
   const [mermaidCode, setMermaidCode] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const stepTimeoutRef = useRef<number | null>(null);
 
   const WEBHOOK_URL = 'https://venjo8.app.n8n.cloud/webhook/234395ff-d51c-469b-afd2-8a7129560790';
 
@@ -98,31 +99,36 @@ const RepositoryForm = () => {
   }, [isAnalyzing]);
 
   useEffect(() => {
-    if (isTyping || !isAnalyzing) return;
+    if (isTyping || !isAnalyzing || isCompletionAnimating) return;
 
-    // Progress through stages, but stop before "Complete" until we have mermaidCode
-    const stageInterval = setInterval(() => {
-      setCurrentStage((prev) => {
-        // Stop at stage 3 (Analyzing dependencies) if we don't have mermaidCode yet
-        if (prev < stages.length - 2 || (prev === stages.length - 2 && mermaidCode)) {
-          const nextStage = prev + 1;
-          
-          // If we've reached the last stage, trigger completion animation
-          if (nextStage === stages.length - 1) {
-            clearInterval(stageInterval);
+    const scheduleNext = () => {
+      const delay = Math.floor(5000 + Math.random() * 5000);
+      stepTimeoutRef.current = window.setTimeout(() => {
+        setCurrentStage((prev) => {
+          const stopIndex = stages.length - 2;
+          if (!mermaidCode && prev >= stopIndex) return prev;
+          const next = Math.min(prev + 1, stages.length - 1);
+          if (next === stages.length - 1) {
             setTimeout(() => {
               setIsCompletionAnimating(true);
             }, 1500);
+          } else {
+            scheduleNext();
           }
-          
-          return nextStage;
-        }
-        return prev;
-      });
-    }, 2000);
+          return next;
+        });
+      }, delay);
+    };
 
-    return () => clearInterval(stageInterval);
-  }, [isTyping, isAnalyzing, mermaidCode, stages.length]);
+    scheduleNext();
+
+    return () => {
+      if (stepTimeoutRef.current) {
+        clearTimeout(stepTimeoutRef.current);
+        stepTimeoutRef.current = null;
+      }
+    };
+  }, [isTyping, isAnalyzing, isCompletionAnimating, mermaidCode, stages.length]);
 
   // Completion animation: "Analyzing..." -> "Analyzed"
   useEffect(() => {
@@ -183,6 +189,10 @@ const RepositoryForm = () => {
     setCurrentStage(0);
     setIsTyping(true);
     setMermaidCode(null);
+    if (stepTimeoutRef.current) {
+      clearTimeout(stepTimeoutRef.current);
+      stepTimeoutRef.current = null;
+    }
 
     try {
       // Call webhook with GitHub URL

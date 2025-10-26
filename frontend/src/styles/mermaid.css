@@ -58,6 +58,9 @@
   stroke-width: 2.5px;
   filter: drop-shadow(0 4px 12px rgba(99, 102, 241, 0.15));
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Light backgrounds with clear borders for black text */
+  fill: #ffffff !important;
+  stroke: #cbd5e1 !important; /* slate-300 */
 }
 
 /* Hover effects for nodes */
@@ -68,6 +71,7 @@
   filter: drop-shadow(0 8px 20px rgba(99, 102, 241, 0.3));
   transform: translateY(-2px);
   stroke-width: 3px;
+  fill: #f8fafc !important; /* slate-50 */
 }
 
 /* Clickable nodes - Enhanced visual feedback */
@@ -117,7 +121,7 @@
   font-weight: 600;
   font-size: 14px;
   line-height: 1.5;
-  color: #0f172a;
+  color: #000000; /* black text */
 }
 
 /* Stronger contrast: force fill and outline on labels */
@@ -125,27 +129,13 @@
 .mermaid-diagram-element svg .nodeLabel tspan,
 .mermaid-diagram-element svg .edgeLabel,
 .mermaid-diagram-element svg .edgeLabel tspan {
-  fill: #0f172a !important;
-  paint-order: stroke fill;
-  stroke: rgba(255, 255, 255, 0.85);
-  stroke-width: 2px;
-  stroke-linejoin: round;
+  fill: #000000 !important; /* force black label */
+  paint-order: normal;
+  stroke: transparent;
+  stroke-width: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  .mermaid-diagram-element svg .nodeLabel,
-  .mermaid-diagram-element svg .edgeLabel {
-    color: #f8fafc;
-  }
-
-  .mermaid-diagram-element svg .nodeLabel,
-  .mermaid-diagram-element svg .nodeLabel tspan,
-  .mermaid-diagram-element svg .edgeLabel,
-  .mermaid-diagram-element svg .edgeLabel tspan {
-    fill: #f8fafc !important;
-    stroke: rgba(0, 0, 0, 0.6);
-  }
-}
+/* Labels remain light in all modes */
 
 /* Edge labels background */
 .mermaid-diagram-element svg .edgeLabel rect {

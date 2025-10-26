@@ -157,6 +157,30 @@ export const useMermaidRenderer = (): UseMermaidRendererReturn => {
           console.warn('Failed to adjust SVG sizing', e);
         }
 
+        // Force all labels to black (override any inline labelStyle)
+        try {
+          const forceBlackLabels = () => {
+            // SVG text labels
+            const svgTexts = svgElement.querySelectorAll('text, .nodeLabel, .edgeLabel');
+            svgTexts.forEach((el) => {
+              if (el instanceof SVGTextElement) {
+                el.setAttribute('fill', '#000');
+                (el as any).style?.setProperty('fill', '#000', 'important');
+              }
+              (el as HTMLElement).style?.setProperty('color', '#000', 'important');
+            });
+
+            // HTML labels inside foreignObject
+            const htmls = svgElement.querySelectorAll('foreignObject, foreignObject *');
+            htmls.forEach((el) => {
+              (el as HTMLElement).style?.setProperty('color', '#000', 'important');
+            });
+          };
+          forceBlackLabels();
+        } catch (e) {
+          console.warn('Failed to force label color to black', e);
+        }
+
         // Bind click events if they exist
         if (bindFunctions) {
           bindFunctions(diagramElement);
