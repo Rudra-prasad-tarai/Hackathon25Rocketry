@@ -1,0 +1,358 @@
+/* Mermaid Visualization Container - Modern Dark/Light Theme */
+.mermaid-visualization-container {
+  position: relative;
+  width: 100%;
+  min-height: 500px;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 1rem;
+  overflow: auto;
+  transition: all 0.3s ease;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .mermaid-visualization-container {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  }
+}
+
+/* Mermaid Diagram Element */
+.mermaid-diagram-element {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeInScale 0.6s ease-out;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* SVG Styling */
+.mermaid-diagram-element svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.08));
+  transition: transform 0.3s ease;
+}
+
+.mermaid-diagram-element svg:hover {
+  transform: scale(1.01);
+}
+
+/* Node Styling - Modern Glass Morphism Effect */
+.mermaid-diagram-element svg .node rect,
+.mermaid-diagram-element svg .node circle,
+.mermaid-diagram-element svg .node polygon,
+.mermaid-diagram-element svg .node path {
+  stroke-width: 2.5px;
+  filter: drop-shadow(0 4px 12px rgba(99, 102, 241, 0.15));
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover effects for nodes */
+.mermaid-diagram-element svg .node:hover rect,
+.mermaid-diagram-element svg .node:hover circle,
+.mermaid-diagram-element svg .node:hover polygon,
+.mermaid-diagram-element svg .node:hover path {
+  filter: drop-shadow(0 8px 20px rgba(99, 102, 241, 0.3));
+  transform: translateY(-2px);
+  stroke-width: 3px;
+}
+
+/* Clickable nodes - Enhanced visual feedback */
+.mermaid-diagram-element svg .node {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mermaid-diagram-element svg .node:hover {
+  opacity: 0.9;
+}
+
+.mermaid-diagram-element svg .node:active {
+  transform: scale(0.98);
+}
+
+/* Edge/Line Styling - Smooth gradients */
+.mermaid-diagram-element svg .edgePath path {
+  stroke-width: 2.5px;
+  stroke: #8b5cf6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 2px 4px rgba(139, 92, 246, 0.2));
+  transition: all 0.3s ease;
+}
+
+.mermaid-diagram-element svg .edgePath:hover path {
+  stroke-width: 3.5px;
+  stroke: #7c3aed;
+  filter: drop-shadow(0 4px 8px rgba(139, 92, 246, 0.4));
+}
+
+/* Arrow markers */
+.mermaid-diagram-element svg .marker {
+  fill: #8b5cf6;
+  transition: fill 0.3s ease;
+}
+
+.mermaid-diagram-element svg .edgePath:hover .marker {
+  fill: #7c3aed;
+}
+
+/* Label Styling - Modern typography */
+.mermaid-diagram-element svg .nodeLabel,
+.mermaid-diagram-element svg .edgeLabel {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #0f172a;
+}
+
+/* Stronger contrast: force fill and outline on labels */
+.mermaid-diagram-element svg .nodeLabel,
+.mermaid-diagram-element svg .nodeLabel tspan,
+.mermaid-diagram-element svg .edgeLabel,
+.mermaid-diagram-element svg .edgeLabel tspan {
+  fill: #0f172a !important;
+  paint-order: stroke fill;
+  stroke: rgba(255, 255, 255, 0.85);
+  stroke-width: 2px;
+  stroke-linejoin: round;
+}
+
+@media (prefers-color-scheme: dark) {
+  .mermaid-diagram-element svg .nodeLabel,
+  .mermaid-diagram-element svg .edgeLabel {
+    color: #f8fafc;
+  }
+
+  .mermaid-diagram-element svg .nodeLabel,
+  .mermaid-diagram-element svg .nodeLabel tspan,
+  .mermaid-diagram-element svg .edgeLabel,
+  .mermaid-diagram-element svg .edgeLabel tspan {
+    fill: #f8fafc !important;
+    stroke: rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* Edge labels background */
+.mermaid-diagram-element svg .edgeLabel rect {
+  fill: rgba(255, 255, 255, 0.95);
+  stroke: #e2e8f0;
+  stroke-width: 1px;
+  rx: 6px;
+  backdrop-filter: blur(10px);
+}
+
+@media (prefers-color-scheme: dark) {
+  .mermaid-diagram-element svg .edgeLabel rect {
+    fill: rgba(30, 41, 59, 0.95);
+    stroke: #334155;
+  }
+}
+
+/* Subgraph Styling - Elegant borders */
+.mermaid-diagram-element svg .cluster rect {
+  fill: rgba(99, 102, 241, 0.05);
+  stroke: #6366f1;
+  stroke-width: 2px;
+  stroke-dasharray: 8, 4;
+  rx: 12px;
+  filter: drop-shadow(0 4px 12px rgba(99, 102, 241, 0.1));
+  transition: all 0.3s ease;
+}
+
+.mermaid-diagram-element svg .cluster:hover rect {
+  fill: rgba(99, 102, 241, 0.08);
+  stroke-width: 2.5px;
+  filter: drop-shadow(0 6px 16px rgba(99, 102, 241, 0.15));
+}
+
+.mermaid-diagram-element svg .cluster-label {
+  font-weight: 600;
+  font-size: 16px;
+  fill: #4f46e5;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+@media (prefers-color-scheme: dark) {
+  .mermaid-diagram-element svg .cluster-label {
+    fill: #a5b4fc;
+  }
+}
+
+/* Error Display - Modern alert style */
+.mermaid-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  padding: 2rem;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border: 2px solid #fca5a5;
+  border-radius: 1rem;
+  text-align: center;
+  animation: slideInUp 0.4s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mermaid-error h4 {
+  margin: 0 0 1rem 0;
+  color: #dc2626;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.mermaid-error p {
+  margin: 0;
+  color: #991b1b;
+  font-size: 1rem;
+  line-height: 1.6;
+  max-width: 600px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .mermaid-error {
+    background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 100%);
+    border-color: #dc2626;
+  }
+
+  .mermaid-error h4 {
+    color: #fca5a5;
+  }
+
+  .mermaid-error p {
+    color: #fecaca;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .mermaid-visualization-container {
+    padding: 1rem;
+    min-height: 400px;
+  }
+
+  .mermaid-diagram-element svg .nodeLabel,
+  .mermaid-diagram-element svg .edgeLabel {
+    font-size: 12px;
+  }
+
+  .mermaid-diagram-element svg .cluster-label {
+    font-size: 14px;
+  }
+}
+
+/* Loading State */
+.mermaid-visualization-container.loading {
+  position: relative;
+  pointer-events: none;
+}
+
+.mermaid-visualization-container.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  border: 4px solid rgba(99, 102, 241, 0.2);
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Smooth scrolling for overflow */
+.mermaid-visualization-container {
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.mermaid-visualization-container::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.mermaid-visualization-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 5px;
+}
+
+.mermaid-visualization-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 5px;
+  transition: background 0.3s ease;
+}
+
+.mermaid-visualization-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+@media (prefers-color-scheme: dark) {
+  .mermaid-visualization-container {
+    scrollbar-color: #475569 #1e293b;
+  }
+
+  .mermaid-visualization-container::-webkit-scrollbar-track {
+    background: #1e293b;
+  }
+
+  .mermaid-visualization-container::-webkit-scrollbar-thumb {
+    background: #475569;
+  }
+
+  .mermaid-visualization-container::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+  }
+}
+
+/* Accessibility - Focus states */
+.mermaid-diagram-element svg .node:focus-visible {
+  outline: 3px solid #6366f1;
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+/* Print styles */
+@media print {
+  .mermaid-visualization-container {
+    background: white;
+    box-shadow: none;
+  }
+
+  .mermaid-diagram-element svg {
+    filter: none;
+  }
+}
